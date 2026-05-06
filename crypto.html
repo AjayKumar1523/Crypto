@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Crypto Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0e14;
+    --surface: #13141d;
+    --border: #1e2030;
+    --text: #e8eaf6;
+    --muted: #5c607a;
+    --accent: #7c6af7;
+    --accent2: #3ddc97;
+    --red: #f26c6c;
+    --gold: #f5c842;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    padding: 32px 48px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .header h1 {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .header-sub {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* Controls */
+  .controls {
+    padding: 28px 48px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  #searchInput {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px 10px 40px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #searchInput::placeholder { color: var(--muted); }
+  #searchInput:focus { border-color: var(--accent); }
+
+  .btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: 0.03em;
+    transition: all 0.18s;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,106,247,0.07);
+  }
+  .btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,106,247,0.12);
+  }
+  .btn .arrow { font-size: 0.78rem; opacity: 0.7; }
+
+  /* Table */
+  .table-wrap {
+    padding: 0 48px 48px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--border);
+  }
+  thead th {
+    padding: 10px 16px;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    font-weight: 400;
+  }
+  thead th:last-child, thead th:nth-child(4), thead th:nth-child(5), thead th:nth-child(6) {
+    text-align: right;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    animation: rowIn 0.3s ease both;
+  }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  td {
+    padding: 16px 16px;
+    font-size: 0.88rem;
+    vertical-align: middle;
+  }
+
+  /* Coin cell */
+  .coin-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .coin-cell img {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--border);
+  }
+  .coin-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  .symbol {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .price {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    text-align: right;
+    color: var(--text);
+  }
+
+  .volume {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    text-align: right;
+    color: var(--muted);
+  }
+
+  .change {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: right;
+  }
+  .change.pos { color: var(--accent2); }
+  .change.neg { color: var(--red); }
+
+  .mktcap {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    text-align: right;
+    color: var(--muted);
+  }
+
+  /* Rank */
+  .rank {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    width: 28px;
+    text-align: center;
+  }
+
+  /* State messages */
+  .state-row td {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+
+  .loader {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* fetch method badge */
+  .method-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .method-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 6px var(--accent2);
+  }
+
+  /* Divider line */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 48px 4px;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-dot"></div>
+  <h1>CryptoTrack</h1>
+  <div class="header-sub" id="fetchBadge">
+    <span class="method-badge"><span class="dot"></span> LIVE · USD</span>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search By Name or Symbol" oninput="onSearch()" />
+  </div>
+  <button class="btn" id="btnMktCap" onclick="sortBy('market_cap')">
+    Sort By Mkt Cap <span class="arrow" id="arrowMkt">↕</span>
+  </button>
+  <button class="btn" id="btnChange" onclick="sortBy('price_change_percentage_24h')">
+    Sort By % Change <span class="arrow" id="arrowChg">↕</span>
+  </button>
+</div>
+
+<div class="divider"></div>
+
+<div class="table-wrap">
+  <table id="cryptoTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Coin</th>
+        <th>Symbol</th>
+        <th>Price</th>
+        <th>24h Volume</th>
+        <th>24h %</th>
+        <th>Market Cap</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr class="state-row">
+        <td colspan="7"><span class="loader"></span> Loading market data…</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+const API_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false";
+
+let allCoins = [];
+let filteredCoins = [];
+let sortField = null;
+let sortAsc = true;
+
+// ─── 1. Fetch using .then ─────────────────────────────────
+function fetchWithThen() {
+  fetch(API_URL)
+    .then(response => {
+      if (!response.ok) throw new Error("Network response not ok");
+      return response.json();
+    })
+    .then(data => {
+      allCoins = data;
+      filteredCoins = [...allCoins];
+      renderTable(filteredCoins);
+    })
+    .catch(err => {
+      showError(err.message);
+    });
+}
+
+// ─── 2. Fetch using async/await ───────────────────────────
+async function fetchWithAsyncAwait() {
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error("Network response not ok");
+    const data = await response.json();
+    allCoins = data;
+    filteredCoins = [...allCoins];
+    renderTable(filteredCoins);
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+// ─── Render ───────────────────────────────────────────────
+function renderTable(coins) {
+  const tbody = document.getElementById("tableBody");
+  if (!coins.length) {
+    tbody.innerHTML = `<tr class="state-row"><td colspan="7">No results found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = coins.map((coin, i) => {
+    const change = coin.price_change_percentage_24h;
+    const changeClass = change >= 0 ? "pos" : "neg";
+    const changeStr = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
+
+    return `
+      <tr style="animation-delay:${i * 40}ms">
+        <td><span class="rank">${i + 1}</span></td>
+        <td>
+          <div class="coin-cell">
+            <img src="${coin.image}" alt="${coin.name}" loading="lazy" />
+            <span class="coin-name">${coin.name}</span>
+          </div>
+        </td>
+        <td><span class="symbol">${coin.symbol.toUpperCase()}</span></td>
+        <td class="price">$${formatNumber(coin.current_price)}</td>
+        <td class="volume">$${formatLarge(coin.total_volume)}</td>
+        <td class="change ${changeClass}">${changeStr}</td>
+        <td class="mktcap">Mkt Cap : $${formatLarge(coin.market_cap)}</td>
+      </tr>`;
+  }).join("");
+}
+
+// ─── Search ───────────────────────────────────────────────
+function onSearch() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  filteredCoins = allCoins.filter(c =>
+    c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q)
+  );
+  if (sortField) applySort(false);
+  else renderTable(filteredCoins);
+}
+
+// ─── Sort ─────────────────────────────────────────────────
+function sortBy(field) {
+  if (sortField === field) {
+    sortAsc = !sortAsc;
+  } else {
+    sortField = field;
+    sortAsc = false; // default: high → low
+  }
+  applySort(true);
+}
+
+function applySort(updateButtons) {
+  filteredCoins.sort((a, b) =>
+    sortAsc ? a[sortField] - b[sortField] : b[sortField] - a[sortField]
+  );
+  renderTable(filteredCoins);
+  if (updateButtons) updateSortButtons();
+}
+
+function updateSortButtons() {
+  const btnMkt = document.getElementById("btnMktCap");
+  const btnChg = document.getElementById("btnChange");
+  const arrowMkt = document.getElementById("arrowMkt");
+  const arrowChg = document.getElementById("arrowChg");
+
+  btnMkt.classList.toggle("active", sortField === "market_cap");
+  btnChg.classList.toggle("active", sortField === "price_change_percentage_24h");
+
+  arrowMkt.textContent = sortField === "market_cap" ? (sortAsc ? "↑" : "↓") : "↕";
+  arrowChg.textContent = sortField === "price_change_percentage_24h" ? (sortAsc ? "↑" : "↓") : "↕";
+}
+
+// ─── Helpers ──────────────────────────────────────────────
+function formatNumber(n) {
+  if (n === null || n === undefined) return "—";
+  if (n >= 1) return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return n.toPrecision(4);
+}
+
+function formatLarge(n) {
+  if (!n) return "—";
+  if (n >= 1e12) return (n / 1e12).toFixed(2) + "T";
+  if (n >= 1e9)  return (n / 1e9).toFixed(2) + "B";
+  if (n >= 1e6)  return (n / 1e6).toFixed(2) + "M";
+  return n.toLocaleString("en-US");
+}
+
+function showError(msg) {
+  document.getElementById("tableBody").innerHTML =
+    `<tr class="state-row"><td colspan="7">⚠ Error: ${msg}</td></tr>`;
+}
+
+// ─── Init: call both methods (async/await runs on load; .then as a demo) ───
+// Primary load uses async/await
+fetchWithAsyncAwait();
+
+// .then method is also defined above and can be invoked independently.
+// To demonstrate both are implemented, log to console:
+console.log("fetchWithThen (Promise .then) is defined:", typeof fetchWithThen);
+console.log("fetchWithAsyncAwait (async/await) called on page load.");
+</script>
+</body>
+</html>
